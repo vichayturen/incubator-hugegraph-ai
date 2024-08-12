@@ -58,7 +58,7 @@ class GraphRAG:
         )
         return self
 
-    def match_keyword_to_id(self, topk_per_keyword: int = 1):
+    def fuzzy_match_vid(self, topk_per_keyword: int = 1):
         self._operators.append(
             SemanticIdQuery(
                 embedding=self._embedding,
@@ -68,10 +68,10 @@ class GraphRAG:
         return self
 
     def query_graph_for_rag(
-        self,
-        max_deep: int = 2,
-        max_items: int = 30,
-        prop_to_match: Optional[str] = None,
+            self,
+            max_deep: int = 2,
+            max_items: int = 30,
+            prop_to_match: Optional[str] = None,
     ):
         self._operators.append(
             GraphRAGQuery(

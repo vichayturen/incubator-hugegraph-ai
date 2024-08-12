@@ -33,12 +33,11 @@ class SemanticIdQuery:
         self._topk_per_keyword = topk_per_keyword
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        keywords = context["keywords"]
+        query = context["query"]
         graph_query_entrance = []
-        for keyword in keywords:
-            query_vector = self.embedding.get_text_embedding(keyword)
-            results = self.vector_index.search(query_vector, top_k=self._topk_per_keyword)
-            if results:
-                graph_query_entrance.extend(results[:self._topk_per_keyword])
-        context["entrance_vids"] = list(set(graph_query_entrance))
+        query_vector = self.embedding.get_text_embedding(query)
+        results = self.vector_index.search(query_vector, top_k=self._topk_per_keyword)
+        if results:
+            graph_query_entrance.extend(results[:self._topk_per_keyword])
+        context["fuzzy_match_vids"] = list(set(graph_query_entrance))
         return context
