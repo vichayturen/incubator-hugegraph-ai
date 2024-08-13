@@ -16,14 +16,16 @@
 # under the License.
 
 
+import os
 import json
 import argparse
-import os
+from typing import List, Union
 
 import requests
 import uvicorn
 import docx
 import gradio as gr
+from gradio.utils import NamedString
 from fastapi import FastAPI
 
 from hugegraph_llm.models.llms.init_llm import LLMs
@@ -87,21 +89,33 @@ def graph_rag(text: str, raw_answer: str, vector_only_answer: str,
         raise gr.Error(f"An unexpected error occurred: {str(e)}")
 
 
-def build_kg(file, schema, example_prompt, build_mode):  # pylint: disable=too-many-branches
-    full_path = file.name
-    if full_path.endswith(".txt"):
-        with open(full_path, "r", encoding="utf-8") as f:
-            text = f.read()
-    elif full_path.endswith(".docx"):
-        text = ""
-        doc = docx.Document(full_path)
-        for para in doc.paragraphs:
-            text += para.text
-            text += "\n"
-    elif full_path.endswith(".pdf"):
-        raise gr.Error("PDF will be supported later! Try to upload text/docx now")
-    else:
-        raise gr.Error("Please input txt or docx file.")
+def build_kg(  # pylint: disable=too-many-branches
+        files: Union[NamedString, List[NamedString]],
+        schema: str,
+        example_prompt: str,
+        build_mode: str
+):
+    texts = []
+    for file in files:
+        full_path = file.name
+        if full_path.endswith(".txt"):
+            with open(full_path, "r", encoding="utf-8") as f:
+                texts.append(f.read())
+        elif full_path.endswith(".docx"):
+            text = ""
+            doc = docx.Document(full_path)
+            for para in doc.paragraphs:
+                text += para.text
+                text += "\n"
+            texts.append(text)
+        elif full_path.endswith(".pdf"):
+            raise gr.Error("PDF will be supported later! Try to upload text/docx now")
+        else:
+            raise gr.Error("Please input txt or docx file.")
+    if build_mode in ("Clear and Import", "Rebuild Vector"):
+        clean_vector_index()
+    if build_mode == "Clear and Import":
+        clean_hg_data()
     builder = KgBuilder(LLMs().get_llm(), Embeddings().get_embedding(), get_hg_client())
 
     if build_mode != "Rebuild vertex index":
@@ -114,7 +128,7 @@ def build_kg(file, schema, example_prompt, build_mode):  # pylint: disable=too-m
                 builder.import_schema(from_hugegraph=schema)
         else:
             return "ERROR: please input schema."
-    builder.chunk_split(text, "paragraph", "zh")
+    builder.chunk_split(texts, "paragraph", "zh")
 
     # TODO: avoid hardcoding the "build_mode" strings (use var/constant instead)
     if build_mode == "Rebuild Vector":
@@ -123,11 +137,7 @@ def build_kg(file, schema, example_prompt, build_mode):  # pylint: disable=too-m
         builder.extract_info(example_prompt, "property_graph")
     # "Test Mode", "Import Mode", "Clear and Import", "Rebuild Vector"
     if build_mode != "Test Mode":
-        if build_mode in ("Clear and Import", "Rebuild Vector"):
-            clean_vector_index()
         builder.build_vector_index()
-    if build_mode == "Clear and Import":
-        clean_hg_data()
     if build_mode in ("Clear and Import", "Import Mode"):
         builder.commit_to_hugegraph()
     if build_mode != "Test Mode":
@@ -380,8 +390,8 @@ if __name__ == "__main__":
 }"""
 
         with gr.Row():
-            input_file = gr.File(value=os.path.join(resource_path, "demo", "test.txt"),
-                                 label="Document")
+            input_file = gr.File(value=[os.path.join(resource_path, "demo", "test.txt")],
+                                 label="Document", file_count="multiple")
             input_schema = gr.Textbox(value=SCHEMA, label="Schema")
             info_extract_template = gr.Textbox(value=SCHEMA_EXAMPLE_PROMPT,
                                                label="Info extract head")
