@@ -55,7 +55,7 @@ class ChunkSplit:
         all_chunks = []
         for text in self.texts:
             chunks = self.text_splitter.split_text(text)
-            all_chunks.append(chunks)
+            all_chunks.extend(chunks)
         if context is None:
             return {"chunks": all_chunks}
         context["chunks"] = all_chunks
