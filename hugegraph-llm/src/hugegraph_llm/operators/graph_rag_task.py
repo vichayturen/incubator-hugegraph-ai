@@ -58,11 +58,11 @@ class GraphRAG:
         )
         return self
 
-    def fuzzy_match_vid(self, topk_per_keyword: int = 1):
+    def fuzzy_match_vid(self, topk_per_query: int = 1):
         self._operators.append(
             SemanticIdQuery(
                 embedding=self._embedding,
-                topk_per_keyword=topk_per_keyword
+                topk_per_query=topk_per_query
             )
         )
         return self

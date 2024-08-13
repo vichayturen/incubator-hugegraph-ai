@@ -63,7 +63,7 @@ def graph_rag(text: str, raw_answer: str, vector_only_answer: str,
     if vector_search:
         searcher.query_vector_index_for_rag()
     if graph_search:
-        searcher.extract_keyword().match_keyword_to_id().query_graph_for_rag()
+        searcher.extract_keyword().fuzzy_match_vid(topk_per_query=5).query_graph_for_rag()
     searcher.merge_dedup_rerank().synthesize_answer(
         raw_answer=convert_bool_str(raw_answer),
         vector_only_answer=convert_bool_str(vector_only_answer),
