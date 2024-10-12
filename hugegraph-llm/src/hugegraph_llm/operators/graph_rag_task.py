@@ -91,10 +91,11 @@ class RAGPipeline:
         return self
 
     def keywords_to_vid(
-        self,
-        by: Literal["query", "keywords"] = "keywords",
-        topk_per_keyword: int = 1,
-        topk_per_query: int = 10,
+            self,
+            by: Literal["query", "keywords"] = "keywords",
+            topk_per_keyword: int = 1,
+            topk_per_query: int = 10,
+            similarity_threshold: float = 0.6
     ):
         """
         Add a semantic ID query operator to the pipeline.
@@ -109,6 +110,7 @@ class RAGPipeline:
                 by=by,
                 topk_per_keyword=topk_per_keyword,
                 topk_per_query=topk_per_query,
+                similarity_threshold=similarity_threshold
             )
         )
         return self

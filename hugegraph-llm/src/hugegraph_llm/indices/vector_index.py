@@ -81,15 +81,17 @@ class VectorIndex:
         self.properties = [p for i, p in enumerate(self.properties) if i not in indices]
         return remove_num
 
-    def search(self, query_vector: List[float], top_k: int) -> List[Dict[str, Any]]:
+    def search(self, query_vector: List[float], top_k: int, max_distance: float = 2.0) -> List[Dict[str, Any]]:
         if self.index.ntotal == 0:
             return []
         if len(query_vector) != self.index.d:
             raise ValueError("Query vector dimension does not match index dimension!")
-        _, indices = self.index.search(np.array([query_vector]), top_k)
+        distances, labels = self.index.search(np.array([query_vector]), top_k)
         results = []
-        for i in indices[0]:
-            results.append(deepcopy(self.properties[i]))
+        for i, label in enumerate(labels[0]):
+            if label == -1 or distances[0][i] > max_distance:
+                break
+            results.append(deepcopy(self.properties[label]))
         return results
 
     @staticmethod

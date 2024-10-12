@@ -35,6 +35,7 @@ def rag_answer(
         vector_only_answer: bool,
         graph_only_answer: bool,
         graph_vector_answer: bool,
+        id_similarity_threshold: float,
         graph_ratio: float,
         rerank_method: Literal["bleu", "reranker"],
         near_neighbor_first: bool,
@@ -111,6 +112,15 @@ def create_rag_block():
             with gr.Row():
                 graph_only_radio = gr.Radio(choices=[True, False], value=False, label="Graph-only Answer")
                 graph_vector_radio = gr.Radio(choices=[True, False], value=False, label="Graph-Vector Answer")
+            with gr.Row():
+                id_similarity_threshold = gr.Slider(
+                    0,
+                    1,
+                    0.6,
+                    label="Fuzzy Match Similarity Threshold",
+                    step=0.01,
+                    interactive=True
+                )
 
             def toggle_slider(enable):
                 return gr.update(interactive=enable)
@@ -147,6 +157,7 @@ def create_rag_block():
             vector_only_radio,
             graph_only_radio,
             graph_vector_radio,
+            id_similarity_threshold,
             graph_ratio,
             rerank_method,
             near_neighbor_first,

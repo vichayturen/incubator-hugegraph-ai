@@ -33,7 +33,8 @@ class SemanticIdQuery:
             embedding: BaseEmbedding,
             by: Literal["query", "keywords"] = "keywords",
             topk_per_query: int = 10,
-            topk_per_keyword: int = 1
+            topk_per_keyword: int = 1,
+            similarity_threshold: float = 0.6
     ):
         self.index_dir = str(os.path.join(resource_path, settings.graph_name, "graph_vids"))
         self.vector_index = VectorIndex.from_index_file(self.index_dir)
@@ -49,6 +50,7 @@ class SemanticIdQuery:
             settings.graph_pwd,
             settings.graph_space,
         )
+        self.max_distance = (1 - similarity_threshold) * 2
 
     def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         graph_query_list = []
@@ -86,7 +88,11 @@ class SemanticIdQuery:
         fuzzy_match_result = []
         for keyword in keywords:
             keyword_vector = self.embedding.get_text_embedding(keyword)
-            results = self.vector_index.search(keyword_vector, top_k=self.topk_per_keyword)
+            results = self.vector_index.search(
+                keyword_vector,
+                top_k=self.topk_per_keyword,
+                max_distance=self.max_distance
+            )
             if results:
                 fuzzy_match_result.extend(results[:self.topk_per_keyword])
         return fuzzy_match_result # FIXME: type mismatch, got 'list[dict[str, Any]]' instead
