@@ -23,8 +23,11 @@ from hugegraph_llm.models.llms.base import BaseLLM
 from hugegraph_llm.models.llms.init_llm import LLMs
 from hugegraph_llm.operators.common_op.nltk_helper import NLTKHelper
 
-KEYWORDS_EXTRACT_TPL = """extract {max_keywords} keywords from the text:
+KEYWORDS_EXTRACT_TPL = """Extract {max_keywords} keywords from the text:
 {question}
+
+Keywords cannot contain meaningless words, and must all represent certain entities.
+Do not extend to synonyms or general categories.
 Provide keywords in the following comma-separated format: 'KEYWORDS: <keywords>'
 """
 
